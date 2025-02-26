@@ -31,5 +31,5 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/frontend:latest
             docker stop frontend || true
             docker rm frontend || true
-            docker run -d --name frontend -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/frontend:latest
+            docker run -d --name frontend -p 8000:8000 ${{ secrets.DOCKER_USERNAME }}/frontend:latest
 
