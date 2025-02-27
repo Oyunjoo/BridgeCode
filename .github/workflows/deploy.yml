@@ -28,10 +28,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd /home/ubuntu/deploy
-            docker-compose down
             docker pull ${{ secrets.DOCKER_USERNAME }}/frontend:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/backend:latest
-            docker pull ${{ secrets.DOCKER_USERNAME }}/ai:latest
-            docker-compose up -d
-            docker image prune -f
+            docker stop frontend || true
+            docker rm frontend || true
+            docker run -d --name frontend -p 5173:5173 ${{ secrets.DOCKER_USERNAME }}/frontend:latest
