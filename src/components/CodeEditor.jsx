@@ -371,31 +371,57 @@ export default function CodeEditor({ onReset }) {
   const [step, setStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
 
+  // const handleDragEnd = (event) => {
+  //   const { active, over } = event;
+  //   if (over) {
+  //       const newDroppedItems = [...droppedItems];
+
+  //       setBlocks(prevBlocks => {
+  //           const updatedBlocks = [...prevBlocks];
+
+  //           // ✅ "+" 문자로 시작하는 요소들 제거는 displayBlock 계산에서 처리하므로 여기서는 필요 없음
+            
+  //           // ✅ 이제 드래그된 아이템을 찾기
+  //           const draggedItem = displayBlock.find((word, index) => `word-${index}` === active.id);
+
+  //           if (draggedItem) {
+  //               newDroppedItems[parseInt(over.id)] = { id: active.id, value: draggedItem };
+  //               setDroppedItems(newDroppedItems);
+
+  //               // ✅ 드래그된 아이템을 제거하고 업데이트
+  //               setDisplayBlock(prev => prev.filter((word, index) => `word-${index}` !== active.id));
+  //           }
+
+  //           return updatedBlocks;
+  //       });
+  //   }
+  // };
+
   const handleDragEnd = (event) => {
     const { active, over } = event;
-    if (over) {
-        const newDroppedItems = [...droppedItems];
 
-        setBlocks(prevBlocks => {
-            const updatedBlocks = [...prevBlocks];
+    if (!over) return; // ✅ 드롭된 위치가 없으면 리턴
 
-            // ✅ "+" 문자로 시작하는 요소들 제거는 displayBlock 계산에서 처리하므로 여기서는 필요 없음
-            
-            // ✅ 이제 드래그된 아이템을 찾기
-            const draggedItem = displayBlock.find((word, index) => `word-${index}` === active.id);
+    console.log("📌 Dragged Item ID:", active.id);
+    console.log("📌 Dropped Over ID:", over.id);
 
-            if (draggedItem) {
-                newDroppedItems[parseInt(over.id)] = { id: active.id, value: draggedItem };
-                setDroppedItems(newDroppedItems);
+    const newDroppedItems = [...droppedItems];
 
-                // ✅ 드래그된 아이템을 제거하고 업데이트
-                setDisplayBlock(prev => prev.filter((word, index) => `word-${index}` !== active.id));
-            }
+    // ✅ 드래그된 아이템 찾기
+    const draggedItem = displayBlock.find((word, index) => `word-${index}` === active.id);
 
-            return updatedBlocks;
-        });
+    if (draggedItem) {
+        const dropIndex = parseInt(over.id); // ✅ 숫자로 변환
+        console.log("📌 Drop Index:", dropIndex);
+
+        newDroppedItems[dropIndex] = { id: active.id, value: draggedItem };
+        setDroppedItems(newDroppedItems);
+
+        // ✅ 기존 드래그 블록에서 아이템 제거
+        setDisplayBlock(prev => prev.filter((word, index) => `word-${index}` !== active.id));
     }
   };
+
 
   const handleReset = () => {
       setStep(0);
