@@ -1,4 +1,4 @@
-import { useState } from "react";
+// import { useState } from "react";
 import { questionText, correctSteps, instructions } from "../data/codeData"; // Import data
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
@@ -120,7 +120,7 @@ export default function CodeEditor() {
     { id: "sum", value: "sum" },
     { id: "equal", value: "=" },
     { id: "zero", value: "0" },
-  ]);
+]);
   const [droppedItems, setDroppedItems] = useState([null, null, null]);
   const [isCorrect, setIsCorrect] = useState(null);
   const [completedSteps, setCompletedSteps] = useState([]);
@@ -211,7 +211,7 @@ export default function CodeEditor() {
         </div>
         <div className="right-section" style={sectionStyle}>
           <div className="horizontal-layout" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-            <h3 style={{...questionStyle, alignItems: "center"}}>Q. 1부터 10까지 합계를 구하는 프로그램을 만드세요.</h3>
+            <h3 style={{...questionStyle, alignItems: "center"}}>Q. {questionText}</h3>
             <div className="code-preview" style={{ display: "flex", flexDirection: "column", width: "100%", alignItems:"center" }}>
               {instructions.map((instruction, index) => (
                 <p key={index} className="pending" style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
