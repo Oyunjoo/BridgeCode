@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:8080"; // 실제 API 주소로 변경하세요
+const API_BASE_URL = "http://172.28.0.2:8080"; // 실제 API 주소로 변경하세요
 
 // 🔹 초기 문제 가져오기 (POST 요청)
 export const fetchProblem = async (userId) => {
