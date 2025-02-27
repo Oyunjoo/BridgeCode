@@ -606,10 +606,10 @@
 }
 
 .code-line {
-    width: 97%;
+    width: 90%;
     display: flex;
     justify-content: space-between;
-    margin-bottom: 8px;
+    /* margin-bottom: 8px; */
     padding: 4px 8px;
     border-radius: 4px;
 }
@@ -622,19 +622,19 @@
 .code-text {
     text-align: left;
     white-space: pre;
-    color: #fff9db;
+    color: #ffffff;
 }
 
 .completed-line .code-text {
-    color: #98C379;
+    color: #ffffff;
 }
 
-.code-comment {
+/* .code-comment {
     text-align: right;
     color: #7F848E;
     font-style: italic;
     margin-left: 10px;
-}
+} */
 
 /* Feedback Message */
 .feedback-message {

@@ -56,6 +56,7 @@ export default function CodeEditor({ onReset }) {
   const [completedSteps, setCompletedSteps] = useState([]);
   const [displayBlock, setDisplayBlock] = useState([]);
   const [feedback, setFeedback] = useState(""); // 피드백 메시지를 저장할 새 상태
+  const [plusCount, setPlusCount] = useState(0);
 
   useEffect(() => {
     // Load problem API call
@@ -84,19 +85,24 @@ export default function CodeEditor({ onReset }) {
   useEffect(() => {
     if (!blocks[step]) return;
 
-    // Count "+" to determine indentation level
     const currentBlock = blocks[step] || [];
-    const plusCount = currentBlock.filter(item => item === "+").length;
-    
-    // Remove all "+" characters
-    const newDisplayBlock = currentBlock.filter(item => item !== "+");
+    let plusCounter = 0;
+    let encounteredLetter = false;
 
+    const newDisplayBlock = currentBlock.filter(item => {
+      if (!encounteredLetter && item === "+") {
+        plusCounter++;
+        return false;
+      }
+      if (/[a-zA-Z]/.test(item)) {
+        encounteredLetter = true;
+      }
+      return true;
+    });
+    
+    setPlusCount(plusCounter);
     setDisplayBlock(newDisplayBlock);
-    
-    // Initialize drop area
     setDroppedItems(Array(newDisplayBlock.length).fill(null));
-
-    // 상태 초기화
     setIsCorrect(null);
     setFeedback("");
 
@@ -137,83 +143,6 @@ export default function CodeEditor({ onReset }) {
     }
   };
 
-  // const handleSubmit = async () => {
-  //   const userAnswer = droppedItems.map(item => item ? item.value : "");
-    
-  //   try {
-  //     const response = await submitAnswer(userId, userAnswer);
-  //     setIsCorrect(response.answer);
-      
-  //     // 피드백 메시지 설정 (response에 feedback이 있다고 가정)
-  //     if (response.feedback) {
-  //       setFeedback(response.feedback);
-  //     }
-  
-  //     console.log("Submitted Answer:", userAnswer);
-  //     console.log("Server Response (isCorrect):", response.answer);
-  
-  //     if (response.answer) {
-  //       // Count "+" for indentation level
-  //       const plusCount = blocks[step]?.filter(item => item === "+").length || 0;
-        
-  //       // Save completed code
-  //       setCompletedSteps(prevSteps => [
-  //         ...prevSteps, 
-  //         { text: userAnswer.join(" "), indentLevel: plusCount }
-  //       ]);
-  
-  //       const nextStep = step + 1;
-  
-  //       if (nextStep < blocks.length) {
-  //         setStep(nextStep);
-
-  //         const codePreview = document.querySelector('.code-preview');
-  //         if (codePreview) {
-  //           codePreview.scrollIntoView({ behavior: 'smooth' });
-  //         }
-
-  //         try {
-  //           const finalFeedback = await fetchFinalFeedback(userId);
-  //           setFinalFeedback(finalFeedback.message);
-  //           console.log(finalFeedback);
-
-  //           // 최종 피드백이 표시될 때 코드 미리보기로 스크롤
-  //           const codePreview = document.querySelector('.code-preview');
-  //           if (codePreview) {
-  //             codePreview.scrollIntoView({ behavior: 'smooth' });
-  //           }
-  //         } catch (error) {
-  //           console.error("Final feedback request failed:", error);
-  //         }
-
-
-  //       } else {
-  //         console.log("All problems completed.");
-          
-  //         // Request final feedback
-  //         try {
-  //           const finalFeedback = await fetchFinalFeedback(userId);
-  //           setFinalFeedback(finalFeedback.message);
-  //           console.log(finalFeedback);
-
-  //           // 최종 피드백이 표시될 때 코드 미리보기로 스크롤
-  //           const codePreview = document.querySelector('.code-preview');
-  //           if (codePreview) {
-  //             codePreview.scrollIntoView({ behavior: 'smooth' });
-  //           }
-  //         } catch (error) {
-  //           console.error("Final feedback request failed:", error);
-  //         }
-  //       }
-  //     } else {
-  //       setDisplayBlock(blocks[step].filter(item => item !== "+"));
-  //       setDroppedItems(Array(blocks[step].filter(item => item !== "+").length).fill(null));
-  //     }
-  //   } catch (error) {
-  //     console.error("Answer submission failed:", error);
-  //   }
-  // };
-
   const handleSubmit = async () => {
     const userAnswer = droppedItems.map(item => item ? item.value : "");
     
@@ -230,10 +159,7 @@ export default function CodeEditor({ onReset }) {
       console.log("Server Response (isCorrect):", response.answer);
   
       if (response.answer) {
-        // Count "+" for indentation level
-        const plusCount = blocks[step]?.filter(item => item === "+").length || 0;
         
-        // Save completed code
         setCompletedSteps(prevSteps => [
           ...prevSteps, 
           { text: userAnswer.join(" "), indentLevel: plusCount }
@@ -249,8 +175,12 @@ export default function CodeEditor({ onReset }) {
           if (codePreview) {
             codePreview.scrollIntoView({ behavior: 'smooth' });
           }
-        } else {
+        } 
+        else {
           console.log("All problems completed.");
+
+          setDisplayBlock([]);
+          setDroppedItems([]);
           
           // Request final feedback
           try {
@@ -363,14 +293,8 @@ export default function CodeEditor({ onReset }) {
             {completedSteps.map((step, index) => (
               <div key={index} className="code-line completed-line">
                 <span className="code-text">
-                  {"  ".repeat(step.indentLevel)}{step.text}
+                  {"   ".repeat(step.indentLevel)}{step.text}
                 </span>
-                
-                {comments[index] && (
-                  <span className="code-comment">
-                    // {comments[index]}
-                  </span>
-                )}
               </div>
             ))}
             
@@ -378,15 +302,9 @@ export default function CodeEditor({ onReset }) {
             {step < blocks.length && (
               <div className="code-line current-line">
                 <span className="code-text">
-                  {"  ".repeat(blocks[step]?.filter(item => item === "+").length || 0)}
+                  {"   ".repeat(blocks[step]?.filter(item => item === "+").length || 0)}
                   {droppedItems.filter(item => item).map(item => item.value).join(" ")}
                 </span>
-                
-                {comments[step] && (
-                  <span className="code-comment">
-                    // {comments[step]}
-                  </span>
-                )}
               </div>
             )}
           </div>
@@ -398,7 +316,8 @@ export default function CodeEditor({ onReset }) {
               transition={{ duration: 0.5 }}
               className="final-feedback"
             >
-              🏆 최종 피드백: {finalFeedback}
+              🏆 최종 피드백🏆
+              {finalFeedback}
             </motion.div>
           )}
           </div>
