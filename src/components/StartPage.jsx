@@ -11,7 +11,7 @@ export default function StartPage({ onSelectProblem }) {
         animate={{ opacity: 1, y: 0 }} 
         transition={{ duration: 0.8 }}
       >
-        Python 코딩 연습
+        Cozzle!
       </motion.h1>
 
       <motion.p 
@@ -20,7 +20,7 @@ export default function StartPage({ onSelectProblem }) {
         animate={{ opacity: 1 }} 
         transition={{ delay: 0.4, duration: 0.8 }}
       >
-        원하는 문제를 선택하세요.
+        {/* 파이썬 코딩퍼즐 */}
       </motion.p>
 
       <motion.div 

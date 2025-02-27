@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://backend:8080"; // 실제 API 주소로 변경하세요
+const API_BASE_URL = "http://localhost:8080"; // 실제 API 주소로 변경하세요
 
 // 🔹 초기 문제 가져오기 (POST 요청)
 export const fetchProblem = async (userId) => {
@@ -8,6 +8,7 @@ export const fetchProblem = async (userId) => {
     const response = await axios.post(`${API_BASE_URL}/api/initial`, {
       userId
     });
+    console.log("init", response.data);
     return response.data; // { problem, comments, blocks }
   } catch (error) {
     console.error("문제 가져오기 실패:", error);

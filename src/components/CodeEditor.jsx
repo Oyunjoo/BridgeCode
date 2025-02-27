@@ -45,7 +45,7 @@ function DropZone({ id, children }) {
 }
 
 export default function CodeEditor({ onReset }) {
-  const [userId] = useState("user123");
+  const userId = "user123";
   const [problemText, setProblemText] = useState("");
   const [comments, setComments] = useState([]);
   const [blocks, setBlocks] = useState([]);
@@ -80,25 +80,14 @@ export default function CodeEditor({ onReset }) {
     };
 
     loadProblem();
-  }, [userId]);
+  },[]);
 
   useEffect(() => {
     if (!blocks[step]) return;
 
     const currentBlock = blocks[step] || [];
-    let plusCounter = 0;
-    let encounteredLetter = false;
-
-    const newDisplayBlock = currentBlock.filter(item => {
-      if (!encounteredLetter && item === "+") {
-        plusCounter++;
-        return false;
-      }
-      if (/[a-zA-Z]/.test(item)) {
-        encounteredLetter = true;
-      }
-      return true;
-    });
+    let plusCounter = currentBlock.filter(item => item === "@").length;
+    const newDisplayBlock = currentBlock.filter(item => item !== "@");
     
     setPlusCount(plusCounter);
     setDisplayBlock(newDisplayBlock);
@@ -207,8 +196,8 @@ export default function CodeEditor({ onReset }) {
           }
         }
       } else {
-        setDisplayBlock(blocks[step].filter(item => item !== "+"));
-        setDroppedItems(Array(blocks[step].filter(item => item !== "+").length).fill(null));
+        setDisplayBlock(blocks[step].filter(item => item !== "@"));
+        setDroppedItems(Array(blocks[step].filter(item => item !== "@").length).fill(null));
       }
     } catch (error) {
       console.error("Answer submission failed:", error);
@@ -302,7 +291,7 @@ export default function CodeEditor({ onReset }) {
             {step < blocks.length && (
               <div className="code-line current-line">
                 <span className="code-text">
-                  {"   ".repeat(blocks[step]?.filter(item => item === "+").length || 0)}
+                  {"   ".repeat(blocks[step]?.filter(item => item === "@").length || 0)}
                   {droppedItems.filter(item => item).map(item => item.value).join(" ")}
                 </span>
               </div>
