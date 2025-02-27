@@ -128,27 +128,34 @@ export default function CodeEditor({ onReset }) {
     const [completedSteps, setCompletedSteps] = useState([]);
 
     const handleDragEnd = (event) => {
-        const { active, over } = event;
-        if (over) {
-            const newDroppedItems = [...droppedItems];
-            
-            // ✅ `blocks[step]`에서 아이템 찾기 (items 대신)
-            const draggedItem = blocks[step]?.find((word, index) => `word-${index}` === active.id);
-            
-            if (draggedItem) {
-                newDroppedItems[parseInt(over.id)] = { id: active.id, value: draggedItem };
-                
-                setDroppedItems(newDroppedItems);
-                
-                // ✅ `blocks[step]`에서 해당 단어를 제거하여 업데이트
-                setBlocks(prevBlocks => {
-                    const updatedBlocks = [...prevBlocks];
-                    updatedBlocks[step] = updatedBlocks[step].filter((word, index) => `word-${index}` !== active.id);
-                    return updatedBlocks;
-                });
-            }
-        }
-    };
+      const { active, over } = event;
+      if (over) {
+          const newDroppedItems = [...droppedItems];
+  
+          setBlocks(prevBlocks => {
+              const updatedBlocks = [...prevBlocks];
+  
+              // ✅ 첫 글자가 "+"면 제거
+              if (updatedBlocks[step][0] === "+") {
+                  updatedBlocks[step] = updatedBlocks[step].slice(1);
+              }
+  
+              // ✅ 이제 드래그된 아이템을 찾기
+              const draggedItem = updatedBlocks[step]?.find((word, index) => `word-${index}` === active.id);
+  
+              if (draggedItem) {
+                  newDroppedItems[parseInt(over.id)] = { id: active.id, value: draggedItem };
+                  setDroppedItems(newDroppedItems);
+  
+                  // ✅ 드래그된 아이템을 제거하고 업데이트
+                  updatedBlocks[step] = updatedBlocks[step].filter((word, index) => `word-${index}` !== active.id);
+              }
+  
+              return updatedBlocks;
+          });
+      }
+  };
+  
     
 
     const handleReset = () => {
@@ -193,39 +200,56 @@ export default function CodeEditor({ onReset }) {
       console.log("📌 isIndented:", isIndented);
       console.log("📌 displayBlock:", displayBlock);
     
-      if (isIndented) {
-        setCompletedSteps(prevSteps => {
-          const updatedSteps = [...prevSteps, blocks[step].join(" ")];
-          console.log("📌 (After Update) completedSteps:", updatedSteps);
-          return updatedSteps;
-        });
-        setStep(prevStep => prevStep + 1);
-      }
-    }, [step, blocks]);
+      // if (isIndented) {
+      //   setCompletedSteps(prevSteps => {
+      //     const updatedSteps = [...prevSteps, { text: blocks[step].join(" "), isIndented }];
+      //     console.log("📌 (After Update) completedSteps:", updatedSteps);
+      //     return updatedSteps;
+      //   });
+      //   setStep(prevStep => prevStep + 1);
+      // }
+    }, [step]);
+    
        
   
     const handleSubmit = async () => {
       const userAnswer = droppedItems.map(item => item ? item.value : "");
-      console.log(userAnswer);
       
       try {
         const response = await submitAnswer(userId, userAnswer);
         setIsCorrect(response.answer);
-        console.log(response.answer);
+    
+        console.log("📌 제출한 답안 (userAnswer):", userAnswer);
+        console.log("📌 서버 응답 (isCorrect):", response.answer);
+        console.log("📌 서버 피드백:", response.feedback);
+    
         setFeedback(response.feedback);
+    
         if (response.answer) {
-            setCompletedSteps([...completedSteps, userAnswer.join(" ")]); // ✅ 현재 줄을 저장
-            const nextStep = step + 1
-
-            if (nextStep < blocks.length) {
-                setStep(nextStep); // ✅ 다음 줄로 이동
-                setDroppedItems(Array(blocks[nextStep].length || 0).fill(null)); // ✅ 다음 줄 크기에 맞게 초기화
-            } else console.log("모든 문제를 완료했습니다.")
+          const nextStep = step + 1;
+          setCompletedSteps([...completedSteps, userAnswer.join(" ")]); // ✅ 현재 줄을 저장
+    
+          console.log("📌 updatedCompletedSteps (추가 후):", [...completedSteps, userAnswer.join(" ")]);
+    
+          if (nextStep < blocks.length) {
+            setStep(nextStep); // ✅ 다음 줄로 이동
+            
+            const nextBlock = blocks[nextStep] || []; // 다음 줄 블록 가져오기 (안전 처리)
+            const isIndented = nextBlock[0] === "+"; // ✅ 들여쓰기 여부 확인
+    
+            console.log("📌 nextBlock:", nextBlock);
+            console.log("📌 isIndented (들여쓰기 여부):", isIndented);
+    
+            setDroppedItems(Array(isIndented ? nextBlock.length - 1 : nextBlock.length).fill(null)); // ✅ "+" 있을 경우 크기 줄이기
+          } else {
+            console.log("모든 문제를 완료했습니다.");
+          }
         }
       } catch (error) {
         console.error("정답 제출 실패:", error);
       }
-    }; 
+    };
+    
 
   return (
     <div className="code-editor-container" style={{ height: "100vh", width: "100vw", display: "flex", backgroundColor: "#f8f3f9", justifyContent: "center" }}>
@@ -310,7 +334,7 @@ export default function CodeEditor({ onReset }) {
             <div className="code-preview" style={{ display: "flex", flexDirection: "column", width: "100%", alignItems:"center" }}>
               {comments.map((comment, index) => (
                 <p key={index} className="pending" style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ textAlign: "left", whiteSpace: "pre" }}>{completedSteps.length > index ? (completedSteps[index][0]=='+' ? "         " + completedSteps[index] : completedSteps[index]) : ""}</span>
+                  <span style={{ textAlign: "left", whiteSpace: "pre" }}>{ isIndented ? "         " + completedSteps[index] : completedSteps[index] }</span>
                   <span style={{ textAlign: "right", color: "gray", fontStyle: "italic" }}>{comment}</span>
                 </p>
               ))}
