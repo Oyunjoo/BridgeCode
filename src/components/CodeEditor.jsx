@@ -152,8 +152,8 @@ export default function CodeEditor({ problemNumber }) {
           const data = await fetchProblem(userId, problemNumber);
           setProblemText(data.problem);
           setComments(data.comments);
-          setBlocks(data.blocks.flat()); // ✅ 중첩 배열을 평탄화해서 사용
-          setDroppedItems(Array(data.blocks.flat().length).fill(null));
+          setBlocks(data.blocks); // ✅ 평탄화 X, 이중 리스트 그대로 저장
+          setDroppedItems(Array(data.blocks.length).fill(null)); // ✅ 줄 수에 맞게 초기화
           setStep(0);
         } catch (error) {
           console.error("문제를 불러오는 중 오류 발생", error);
@@ -172,9 +172,9 @@ export default function CodeEditor({ problemNumber }) {
         setFeedback(response.feedback);
 
         if (response.isAnswer) {
-            setCompletedSteps([...completedSteps, userAnswer.join(" ")]);
-            setStep(step + 1);
-            setDroppedItems(Array(blocks.length).fill(null));
+            setCompletedSteps([...completedSteps, userAnswer.join(" ")]); // ✅ 현재 줄을 저장
+            setStep(step + 1); // ✅ 다음 줄로 이동
+            setDroppedItems(Array(blocks[step + 1]?.length || 0).fill(null)); // ✅ 다음 줄 크기에 맞게 초기화
         }
       } catch (error) {
         console.error("정답 제출 실패:", error);
