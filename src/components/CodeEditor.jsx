@@ -4,221 +4,135 @@ import { motion } from "framer-motion";
 
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
-import "./CodeEditor.css";
-
-const boxStyle = {
-    padding: "6px 12px",
-    border: "2px solid #4A90E2",
-    backgroundColor: "#E3F2FD",
-    borderRadius: "8px",
-    display: "inline-flex",
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-    cursor: "grab",
-    minWidth: "10px",
-    minHeight: "20px",
-    // margin: "0.5px",
-    fontSize: "16px",
-    whiteSpace: "nowrap"
-};
-
-const titleStyle = {
-    fontSize: "26px",
-    fontWeight: "bold",
-    textAlign: "center",
-    color: "#1F2937",
-    marginBottom: "10px",
-};
-
-const instructionStyle = {
-    fontSize: "18px",
-    fontWeight: "500",
-    color: "#374151",
-};
-
-const containerStyle = {
-    display: "flex",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: "10px",
-    padding: "10px",
-    border: "2px solid #ccc",
-    borderRadius: "10px",
-    minHeight: "160px", // 컨테이너 크기 유지
-    width: "100%",
-    boxSizing: "border-box",
-    flexShrink: 0, // 크기 줄어들지 않게 설정
-};
-
-const wrapperStyle = {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "20px", // drag-container와 drop-container 사이 간격 추가
-    width: "100%",
-    minHeight: "300px",
-};
-
-const flexContainerStyle = {
-    display: "flex",
-    justifyContent: "space-between", // 좌우 공간 최대로 활용
-    alignItems: "center",
-    width: "100vw",
-    maxWidth: "1400px", // 전체 컨테이너 크기 확대
-    gap: "40px",
-};
-
-const sectionStyle = {
-    width: "70%", // 좌우 영역 확장
-    maxWidth: "600px",
-    padding: "10px",
-};
-
-const questionStyle = {
-    fontSize: "20px",
-    fontWeight: "bold",
-    textAlign: "center",
-    padding: "15px",
-    width: "100%",
-    backgroundColor: "#FFF",
-    borderRadius: "10px",
-    border: "2px solid #1F2937",
-    boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.1)",
-    marginBottom: "20px",
-};
+import "./CodeEditor.css"; // Import the CSS file we created
 
 function DraggableItem({ id, value }) {
-    const { attributes, listeners, setNodeRef, transform, transition } = useDraggable({ id });
-    const style = {
-      ...boxStyle,
-      transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
-      transition,
-    };
-    return (
-      <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="draggable-item">
-        {value}
-      </div>
-    );
-}
-  
-function DropZone({ id, children }) {
-    const { setNodeRef, isOver } = useDroppable({ id });
-    return (
-    <div ref={setNodeRef} className={`drop-zone ${isOver ? 'highlight' : ''}`} id={id}>
-      {children ? (
-        <div style={{ ...boxStyle, border: "2px solid #4A90E2", backgroundColor: "#E3F2FD" }}>{children}</div>
-      ) : (
-        <div style={{ ...boxStyle, border: "2px dashed #dc3545", backgroundColor: "#f8d7da" }}></div>
-      )}
+  const { attributes, listeners, setNodeRef, transform, transition } = useDraggable({ id });
+  const style = {
+    transform: transform ? `translate(${transform.x}px, ${transform.y}px)` : undefined,
+    transition,
+    zIndex: transform ? "10" : "auto", // Ensure dragged items appear in front
+  };
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners} 
+      className="draggable-item"
+    >
+      {value}
     </div>
-    );
+  );
 }
+
+function DropZone({ id, children }) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      className={`drop-zone ${isOver ? "highlight" : ""}`} 
+      id={id}
+      style={{
+        minWidth: children ? "auto" : "40px",  // 기본 크기 유지
+        minHeight: children ? "auto" : "40px", 
+      }}
+    >
+      {children ? children : null} {/* 중복된 div 제거 */}
+    </div>
+  );
+}
+
+
 
 export default function CodeEditor({ onReset }) {
   const [userId] = useState("user123");
-  const [problemText, setProblemText] = useState(""); // 문제 설명
-  const [comments, setComments] = useState([]); // 주석 목록
-  const [blocks, setBlocks] = useState([]); // 정답 블록 목록
+  const [problemText, setProblemText] = useState("");
+  const [comments, setComments] = useState([]);
+  const [blocks, setBlocks] = useState([]);
   const [droppedItems, setDroppedItems] = useState([]);
   const [isCorrect, setIsCorrect] = useState(null);
-  const [feedback, setFeedback] = useState("");
+  const [finalFeedback, setFinalFeedback] = useState("");
   const [step, setStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
-
-  const handleDragEnd = (event) => {
-    const { active, over } = event;
-
-    if (!over) return; // ✅ 드롭된 위치가 없으면 리턴
-
-    console.log("📌 Dragged Item ID:", active.id);
-    console.log("📌 Dropped Over ID:", over.id);
-
-    const newDroppedItems = [...droppedItems];
-
-    // ✅ 드래그된 아이템 찾기
-    const draggedItem = displayBlock.find((word, index) => `word-${index}` === active.id);
-
-    if (draggedItem) {
-        const dropIndex = parseInt(over.id); // ✅ 숫자로 변환
-        console.log("📌 Drop Index:", dropIndex);
-
-        newDroppedItems[dropIndex] = { id: active.id, value: draggedItem };
-        setDroppedItems(newDroppedItems);
-
-        // ✅ 기존 드래그 블록에서 아이템 제거
-        setDisplayBlock(prev => prev.filter((word, index) => `word-${index}` !== active.id));
-    }
-  };
-
-
-  const handleReset = () => {
-      setStep(0);
-      setCompletedSteps([]);
-      setDroppedItems([]);
-      setIsCorrect(null);
-      setFeedback("");
-      setBlocks([]);
-      onReset();
-  };     
+  const [displayBlock, setDisplayBlock] = useState([]);
 
   useEffect(() => {
-    // 🔹 문제 불러오기 API 호출
+    // Load problem API call
     const loadProblem = async () => {
       try {
         const data = await fetchProblem(userId);
 
         if (!data || !data.problem || !data.comments || !data.blocks || !Array.isArray(data.blocks)) {
-          console.error("🚨 서버 응답이 올바르지 않습니다!", data);
+          console.error("Server response is invalid!", data);
           return;
         }
 
         setProblemText(data.problem);
         setComments(data.comments);
-        setBlocks(data.blocks); // ✅ 평탄화 X, 이중 리스트 그대로 저장
+        setBlocks(data.blocks);
         setStep(0);
-        setDroppedItems(Array(data.blocks[0].length || 0).fill(null)); // ✅ 줄 수에 맞게 초기화
+        setDroppedItems(Array(data.blocks[0].length || 0).fill(null));
       } catch (error) {
-        console.error("문제를 불러오는 중 오류 발생", error);
+        console.error("Error loading problem", error);
       }
     };
 
     loadProblem();
   }, [userId]);
-  
-  const [displayBlock, setDisplayBlock] = useState([]); // ✅ displayBlock을 상태로 선언
 
   useEffect(() => {
-    if (!blocks[step]) return; // ✅ 방어 코드 추가
+    if (!blocks[step]) return;
 
-    // ✅ `+` 개수를 카운트하여 들여쓰기 수준 결정
+    // Count "+" to determine indentation level
     const currentBlock = blocks[step] || [];
     const plusCount = currentBlock.filter(item => item === "+").length;
     
-    // ✅ 모든 "+" 문자 제거
+    // Remove all "+" characters
     const newDisplayBlock = currentBlock.filter(item => item !== "+");
 
-    console.log("📌 현재 Step:", step);
-    console.log("📌 들여쓰기 개수:", plusCount);
-    console.log("📌 displayBlock:", newDisplayBlock);
-
-    setDisplayBlock(newDisplayBlock); // ✅ `displayBlock`을 상태로 업데이트
+    setDisplayBlock(newDisplayBlock);
     
-    // ✅ 드롭 영역 초기화 (모든 "+" 제외한 크기로)
+    // Initialize drop area
     setDroppedItems(Array(newDisplayBlock.length).fill(null));
 
-    // ✅ 자동으로 완료되는 블록 처리 (빈 블록이거나 "+"만 있는 경우)
+    // Automatically complete empty blocks
     if (newDisplayBlock.length === 0) {
       setCompletedSteps(prevSteps => [
         ...prevSteps, 
         { text: "", indentLevel: plusCount }
       ]);
       
-      // 다음 단계로 이동
+      // Move to next step
       setStep(prevStep => prevStep + 1);
     }
-  }, [step, blocks]); // ✅ 의존성 배열에 blocks 포함
+  }, [step, blocks]);
+
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (!over) return;
+
+    console.log("Dragged Item ID:", active.id);
+    console.log("Dropped Over ID:", over.id);
+
+    const newDroppedItems = [...droppedItems];
+
+    // Find dragged item
+    const draggedItem = displayBlock.find((word, index) => `word-${index}` === active.id);
+
+    if (draggedItem) {
+        const dropIndex = parseInt(over.id);
+        console.log("Drop Index:", dropIndex);
+
+        newDroppedItems[dropIndex] = { id: active.id, value: draggedItem };
+        setDroppedItems(newDroppedItems);
+
+        // Remove item from drag area
+        setDisplayBlock(prev => prev.filter((word, index) => `word-${index}` !== active.id));
+    }
+  };
 
   const handleSubmit = async () => {
     const userAnswer = droppedItems.map(item => item ? item.value : "");
@@ -227,17 +141,14 @@ export default function CodeEditor({ onReset }) {
       const response = await submitAnswer(userId, userAnswer);
       setIsCorrect(response.answer);
   
-      console.log("📌 제출한 답안 (userAnswer):", userAnswer);
-      console.log("📌 서버 응답 (isCorrect):", response.answer);
-      console.log("📌 서버 피드백:", response.feedback);
-  
-      setFeedback(response.feedback);
+      console.log("Submitted Answer:", userAnswer);
+      console.log("Server Response (isCorrect):", response.answer);
   
       if (response.answer) {
-        // ✅ 현재 블록의 "+" 개수 카운트
+        // Count "+" for indentation level
         const plusCount = blocks[step]?.filter(item => item === "+").length || 0;
         
-        // 완료된 코드 저장
+        // Save completed code
         setCompletedSteps(prevSteps => [
           ...prevSteps, 
           { text: userAnswer.join(" "), indentLevel: plusCount }
@@ -246,16 +157,16 @@ export default function CodeEditor({ onReset }) {
         const nextStep = step + 1;
   
         if (nextStep < blocks.length) {
-          setStep(nextStep); // ✅ 다음 줄로 이동
+          setStep(nextStep);
         } else {
-          console.log("모든 문제를 완료했습니다.");
+          console.log("All problems completed.");
           
-          // 모든 단계 완료 후 최종 피드백 요청을 추가할 수 있음
+          // Request final feedback
           try {
             const finalFeedback = await fetchFinalFeedback(userId);
-            setFeedback(finalFeedback.message);
+            setFinalFeedback(finalFeedback.message);
           } catch (error) {
-            console.error("최종 피드백 요청 실패:", error);
+            console.error("Final feedback request failed:", error);
           }
         }
       } else {
@@ -263,188 +174,122 @@ export default function CodeEditor({ onReset }) {
         setDroppedItems(Array(blocks[step].filter(item => item !== "+").length).fill(null));
       }
     } catch (error) {
-      console.error("정답 제출 실패:", error);
+      console.error("Answer submission failed:", error);
     }
   };
   
+  const handleReset = () => {
+      setStep(0);
+      setCompletedSteps([]);
+      setDroppedItems([]);
+      setIsCorrect(null);
+      setFinalFeedback("");
+      setBlocks([]);
+      onReset();
+  };
 
-return (
-  <div className="code-editor-container" style={{ height: "100vh", width: "100vw", display: "flex", backgroundColor: "#f8f3f9", justifyContent: "center" }}>
-    <div className="flex-container" style={{ ...flexContainerStyle, display: "flex", justifyContent: "center", alignItems: "center", width: "70%", maxWidth: "1000px" }}>
-      <div className="left-section" style={sectionStyle}>
-        <h2 style={titleStyle}>코드 한 줄씩 완성하기</h2>
-        <div className="instruction-box" style={instructionStyle}>
-          <p>{comments[step]}</p>
+  return (
+    <div className="code-editor-container">
+      <div className="flex-container">
+        <div className="left-section">
+          <div className="title-box">코드 한 줄씩 완성하기</div>
+          
+          <div className="instruction-box">
+            <p>{comments[step]}</p>
+          </div>
+          
           <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <div style={wrapperStyle}>
-            <div className="drag-container" style={{ ...containerStyle, backgroundColor: "#fafafa" }}>
+            <div className="drag-container">
               {displayBlock.map((item, index) => ( 
                 <DraggableItem key={index} id={`word-${index}`} value={item} />
               ))}
             </div>
-              <div className="drop-container" style={{ ...containerStyle, display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap", backgroundColor: "#fff59d" }}>
-                {droppedItems.map((item, index) => (
-                  <DropZone key={index} id={index.toString()}>{item?.value}</DropZone>
-                ))}
-              </div>
+            
+            <div className="drop-container">
+              {droppedItems.map((item, index) => (
+                <DropZone key={index} id={index.toString()}>
+                  {item && (
+                    <div className="draggable-item">
+                      {item.value}
+                    </div>
+                  )}
+                </DropZone>
+              ))}
             </div>
           </DndContext>
-        </div>
 
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", marginTop: "15px", width: "100%" }}>
-          {/* 🔹 Go Back 버튼 */}
-          <button 
-              onClick={handleReset} 
-              style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "100%",
-                  padding: "8px 16px",
-                  fontSize: "14px",
-                  fontWeight: "bold",
-                  backgroundColor: "#FF6B6B",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  cursor: "pointer",
-                  transition: "background 0.3s",
-                  textAlign: "center",
-                  minHeight: "50px" // 최대 크기 제한
-              }}
-              className="back-button"
-          >
+          <div className="button-container">
+            <button onClick={handleReset} className="back-button">
               뒤로가기
-          </button>
+            </button>
 
-          {/* 제출하기 버튼 */}
-          <button 
-              onClick={handleSubmit} 
-              style={{ 
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",  // ✅ 버튼 너비 동일하게 설정
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: "bold",
-                backgroundColor: "#4A90E2",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                transition: "background 0.3s",
-                minHeight: "50px",
-                textAlign: "center",
-              }}
-              className="submit-button"
-          >
+            <button onClick={handleSubmit} className="submit-button">
               제출하기
-          </button>
-        </div>
-        
+            </button>
+          </div>
+          
           {isCorrect !== null && (
-            <motion.p
+            <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1.2, opacity: 1 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 10 }}
-              style={{
-                fontSize: "20px",
-                fontWeight: "bold",
-                color: isCorrect ? "#4CAF50" : "#FF5252",
-                textAlign: "center",
-                marginTop: "15px",
-              }}
+              className={`feedback-message ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`}
             >
               {isCorrect ? "🎉 정답입니다! 🎉" : "❌ 오답입니다! ❌"}
-            </motion.p>
+            </motion.div>
           )}
+        </div>
 
-      </div>
-
-      <div className="right-section" style={sectionStyle}>
-        <div className="horizontal-layout" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-          <h3 style={{...questionStyle, alignItems: "center"}}>Q. {problemText}</h3>
-          <div className="code-preview" style={{ 
-            display: "flex", 
-            flexDirection: "column",
-            width: "100%", 
-            alignItems: "flex-start",
-            backgroundColor: "#2d2d2d",
-            color: "#f8f8f2",
-            borderRadius: "8px",
-            padding: "15px",
-            fontFamily: "monospace",
-            marginTop: "10px",
-            minHeight: "300px"
-          }}>
-            {/* 완료된 코드 단계 출력 */}
+        <div className="right-section">
+          <div className="question-box">
+            Q. {problemText}
+          </div>
+          
+          <div className="code-preview">
+            {/* Completed code steps */}
             {completedSteps.map((step, index) => (
-              <div key={index} style={{ 
-                width: "100%", 
-                display: "flex", 
-                justifyContent: "space-between",
-                marginBottom: "8px"
-              }}>
-                {/* 들여쓰기와 코드 텍스트 */}
-                <span style={{ 
-                  textAlign: "left", 
-                  whiteSpace: "pre", 
-                  color: "#f8f8f2" 
-                }}>
+              <div key={index} className="code-line completed-line">
+                <span className="code-text">
                   {"  ".repeat(step.indentLevel)}{step.text}
                 </span>
                 
-                {/* 주석 */}
                 {comments[index] && (
-                  <span style={{ 
-                    textAlign: "right", 
-                    color: "#6272a4", 
-                    fontStyle: "italic",
-                    marginLeft: "10px"
-                  }}>
+                  <span className="code-comment">
                     // {comments[index]}
                   </span>
                 )}
               </div>
             ))}
             
-            {/* 현재 작업 중인 코드 라인 표시 */}
+            {/* Current code line */}
             {step < blocks.length && (
-              <div style={{ 
-                width: "100%", 
-                display: "flex", 
-                justifyContent: "space-between",
-                marginBottom: "8px",
-                backgroundColor: "#3d3d3d",
-                padding: "5px",
-                borderRadius: "4px"
-              }}>
-                <span style={{ 
-                  textAlign: "left", 
-                  whiteSpace: "pre", 
-                  color: "#f1fa8c" 
-                }}>
+              <div className="code-line current-line">
+                <span className="code-text">
                   {"  ".repeat(blocks[step]?.filter(item => item === "+").length || 0)}
                   {droppedItems.filter(item => item).map(item => item.value).join(" ")}
                 </span>
                 
                 {comments[step] && (
-                  <span style={{ 
-                    textAlign: "right", 
-                    color: "#6272a4", 
-                    fontStyle: "italic",
-                    marginLeft: "10px"
-                  }}>
+                  <span className="code-comment">
                     // {comments[step]}
                   </span>
                 )}
               </div>
             )}
           </div>
+          
+          {finalFeedback && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="final-feedback"
+            >
+              🏆 최종 피드백: {finalFeedback}
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
-  </div>
-);
+  );
 }

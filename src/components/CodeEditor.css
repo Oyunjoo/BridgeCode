@@ -1,105 +1,344 @@
-배경과 전체 화면 설정
+/* Base Container Styles */
 .code-editor-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 40px;
-    background-color: #f3f4f6;
-    min-height: 100vh;
-}
-  
-
-.code-section {
-    border: 4px solid #facc15;
-    padding: 24px;
-    background-color: white;
-    width: 50%;
-    border-radius: 12px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-}
-  
-.code-box {
-    background-color: #e5e7eb;
-    padding: 16px;
-    border-radius: 8px;
-    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8f3f9 0%, #e2e8f0 100%);
+    height: 100vh;
+    width: 100vw;
+    font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
 }
 
-
-.drag-box {
+/* Main Flex Container */
+.flex-container {
     display: flex;
     justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
+    align-items: flex-start;
+    width: 95%;
+    max-width: 1200px;
+    gap: 30px;
+    margin: 0 auto;
 }
 
-.drag-item {
+/* Left and Right Sections */
+.left-section, .right-section {
+    background-color: white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    width: 48%;
+    transition: all 0.3s ease;
+}
+
+/* Title Box */
+.title-box {
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    color: #1a202c;
+    background-color: #fff;
     padding: 16px;
-    border: 4px solid #dc2626;
-    background-color: #f87171;
+    border-radius: 12px;
+    border-left: 5px solid #4A90E2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Instruction Box */
+.instruction-box {
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    color: #1F2937;
+    background-color: #EFF6FF;
+    padding: 16px;
+    border-radius: 12px;
+    border-left: 5px solid #3B82F6;
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+/* Question Box */
+.question-box {
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    padding: 16px;
+    background-color: #FFF;
+    border-radius: 12px;
+    border-left: 5px solid #10B981;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+    color: #1F2937;
+}
+
+/* Drag Container */
+.drag-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    border: 2px solid #e2e8f0;
+    background-color: #f7fafc;
+    border-radius: 12px;
+    min-height: 120px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.drag-container:hover {
+    border-color: #4A90E2;
+    box-shadow: 0 4px 12px rgba(74, 144, 226, 0.1);
+}
+
+/* Drop Container */
+.drop-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    background-color: #FFF9DB;
+    border: 2px dashed #FCD34D;
+    border-radius: 12px;
+    min-height: 120px;
+    transition: all 0.3s ease;
+}
+
+.drop-container:hover {
+    background-color: #FEF3C7;
+    border-color: #F59E0B;
+}
+
+/* Draggable Item */
+.draggable-item {
+    padding: 8px 14px;
+    background-color: #E3F2FD;
+    color: #1565C0;
+    border: 2px solid #4A90E2;
     border-radius: 8px;
-    width: 50px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.draggable-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-color: #BBDEFB;
+}
+
+.draggable-item:active {
+    cursor: grabbing;
+}
+
+/* Drop Zone (기본 크기) */
+.drop-zone {
+    min-width: 60px;  /* 블록과 동일한 크기 */
+    min-height: 40px;
+    max-height: 43px;
+    border: 2px dashed #dc3545;
+    background-color: #feecef;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+/* Drop Zone (블록이 들어왔을 때 크기 자동 조정) */
+.drop-zone > .draggable-item {
+    width: auto; 
+    height: auto;
+    background-color: #E3F2FD; /* 드래그 블록 색상 유지 */
+    border: 2px solid #4A90E2;
+    border-radius: 8px;
+    /* padding: 8px 14px; */
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 드롭존이 비어있을 때 기본 크기 유지 */
+.drop-zone:empty {
+    width: 60px;
+    height: 40px;
+}
+
+/* Drop Zone Highlight (드래그 중일 때) */
+.drop-zone.highlight {
+    background-color: #d1e7dd;
+    border: 2px solid #198754;
+    transform: scale(1.05);
+}
+
+
+.button-container {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+    width: 100%;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #FF6B6B;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
     height: 50px;
 }
 
-
-.code-preview {
-    border: 4px solid black;
-    padding: 24px;
-    background-color: black;
-    color: white;
-    width: 50%;
-    border-radius: 12px;
-}
-
-.code-preview p {
-    background-color: #374151;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-align: center;
+.back-button:hover {
+    background-color: #E55353;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(229, 83, 83, 0.3);
 }
 
 .submit-button {
-    background-color: black;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-weight: bold;
-    margin-top: 16px;
-    width: 100%;
-}
-.submit-button:hover {
-    background-color: #1f2937;
-}
-.flex-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 20px;
-}
-
-.left-section {
-    width: 100%;
-}
-
-.right-section {
     display: flex;
     align-items: center;
-    gap: 20px;
-    width: 100%;
     justify-content: center;
-} 
-
-/* 🔹 Go Back 버튼 hover 효과 */
-.back-button:hover {
-    background-color: #E55353; /* ✅ hover 시 색상 변경 */
-    transform: scale(1.05); /* ✅ 살짝 커지는 효과 */
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    background-color: #4A90E2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    height: 50px;
 }
 
-/* 🔹 제출하기 버튼 hover 효과 */
 .submit-button:hover {
-    background-color: #357ABD; /* ✅ hover 시 색상 변경 */
-    transform: scale(1.05); /* ✅ 살짝 커지는 효과 */
+    background-color: #357ABD;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(53, 122, 189, 0.3);
+}
+
+/* Code Preview */
+.code-preview {
+    display: flex;
+    flex-direction: column;
+    width: 93%;
+    align-items: flex-start;
+    background-color: #282c34;
+    color: #ABB2BF;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'JetBrains Mono', 'Consolas', monospace;
+    margin-top: 16px;
+    min-height: 300px;
+    overflow: auto;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+    line-height: 1.6;
+}
+
+.code-line {
+    width: 97%;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.current-line {
+    background-color: #3E4452;
+    border-left: 5px solid #10B981;
+}
+
+.code-text {
+    text-align: left;
+    white-space: pre;
+    color: #fff9db;
+}
+
+.completed-line .code-text {
+    color: #98C379;
+}
+
+.code-comment {
+    text-align: right;
+    color: #7F848E;
+    font-style: italic;
+    margin-left: 10px;
+}
+
+/* Feedback Message */
+.feedback-message {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 16px;
+    animation: pulse 1.5s infinite;
+}
+
+.feedback-correct {
+    color: #10B981;
+    background-color: #D1FAE5;
+}
+
+.feedback-incorrect {
+    color: #EF4444;
+    background-color: #FEE2E2;
+}
+
+.final-feedback {
+    margin-top: 24px;
+    padding: 16px;
+    background: linear-gradient(135deg, #FDE68A 0%, #F59E0B 100%);
+    border-radius: 12px;
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #7C2D12;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+}
+
+/* Animations */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .flex-container {
+      flex-direction: column;
+      width: 95%;
+}
+
+.left-section, .right-section {
+      width: 100%;
+      margin-bottom: 20px;
+    }
 }
