@@ -1,4 +1,4 @@
-// import { useState } from "react";
+import { useState } from "react";
 import { questionText, correctSteps, instructions } from "../data/codeData"; // Import data
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
@@ -116,28 +116,10 @@ function DropZone({ id, children }) {
 
 export default function CodeEditor() {
   const [step, setStep] = useState(1);
-  const [items, setItems] = useState([
-    { id: "sum", value: "sum" },
-    { id: "equal", value: "=" },
-    { id: "zero", value: "0" },
-]);
-  const [droppedItems, setDroppedItems] = useState([null, null, null]);
+  const [items, setItems] = useState(correctSteps[0].map((value, index) => ({ id: `step0-${index}`, value })).filter((item, index) => !(index === 0 && item.value === "+")));
+  const [droppedItems, setDroppedItems] = useState(Array(correctSteps[0].length).fill(null));
   const [isCorrect, setIsCorrect] = useState(null);
   const [completedSteps, setCompletedSteps] = useState([]);
-
-  const correctSteps = [
-    ["sum", "=", "0"],
-    ["for", "i", "in", "range", "(", "1", ",", "11", ")", ":"],
-    ["+", "sum", "+=", "i"],
-    ["print", "(", "sum", ")"],
-  ];
-
-  const instructions = [
-    "# 합계를 저장할 변수 초기화",
-    "# for문 정의",
-    "# sum에 i 더하기",
-    "# 계산된 합계 출력",
-  ];
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
