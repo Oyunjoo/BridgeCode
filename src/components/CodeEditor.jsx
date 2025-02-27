@@ -168,6 +168,12 @@ export default function CodeEditor({ onReset }) {
     const loadProblem = async () => {
       try {
         const data = await fetchProblem(userId);
+
+        if (!data || !data.problem || !data.comments || !data.blocks || !Array.isArray(data.blocks)) {
+          console.error("🚨 서버 응답이 올바르지 않습니다!", data);
+          return;
+        }
+
         setProblemText(data.problem);
         setComments(data.comments);
         setBlocks(data.blocks); // ✅ 평탄화 X, 이중 리스트 그대로 저장
