@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://ALB-python-1567497534.ap-northeast-2.elb.amazonaws.com:8080"; // 실제 API 주소로 변경하세요
+const API_BASE_URL = "http://backend:8080"; // 실제 API 주소로 변경하세요
 
 // 🔹 초기 문제 가져오기 (POST 요청)
 export const fetchProblem = async (userId) => {
@@ -33,7 +33,7 @@ export const submitAnswer = async (userId, combi) => {
 // 🔹 최종 피드백 가져오기 (GET 요청)
 export const fetchFinalFeedback = async (userId) => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/api/final`, {
+    const response = await axios.post(`${API_BASE_URL}/api/final`, {
         userId
     });
     return response.data; // { feedback }

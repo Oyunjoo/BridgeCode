@@ -44,8 +44,6 @@ function DropZone({ id, children }) {
   );
 }
 
-
-
 export default function CodeEditor({ onReset }) {
   const [userId] = useState("user123");
   const [problemText, setProblemText] = useState("");
@@ -57,6 +55,7 @@ export default function CodeEditor({ onReset }) {
   const [step, setStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState([]);
   const [displayBlock, setDisplayBlock] = useState([]);
+  const [feedback, setFeedback] = useState(""); // 피드백 메시지를 저장할 새 상태
 
   useEffect(() => {
     // Load problem API call
@@ -97,6 +96,10 @@ export default function CodeEditor({ onReset }) {
     // Initialize drop area
     setDroppedItems(Array(newDisplayBlock.length).fill(null));
 
+    // 상태 초기화
+    setIsCorrect(null);
+    setFeedback("");
+
     // Automatically complete empty blocks
     if (newDisplayBlock.length === 0) {
       setCompletedSteps(prevSteps => [
@@ -134,12 +137,94 @@ export default function CodeEditor({ onReset }) {
     }
   };
 
+  // const handleSubmit = async () => {
+  //   const userAnswer = droppedItems.map(item => item ? item.value : "");
+    
+  //   try {
+  //     const response = await submitAnswer(userId, userAnswer);
+  //     setIsCorrect(response.answer);
+      
+  //     // 피드백 메시지 설정 (response에 feedback이 있다고 가정)
+  //     if (response.feedback) {
+  //       setFeedback(response.feedback);
+  //     }
+  
+  //     console.log("Submitted Answer:", userAnswer);
+  //     console.log("Server Response (isCorrect):", response.answer);
+  
+  //     if (response.answer) {
+  //       // Count "+" for indentation level
+  //       const plusCount = blocks[step]?.filter(item => item === "+").length || 0;
+        
+  //       // Save completed code
+  //       setCompletedSteps(prevSteps => [
+  //         ...prevSteps, 
+  //         { text: userAnswer.join(" "), indentLevel: plusCount }
+  //       ]);
+  
+  //       const nextStep = step + 1;
+  
+  //       if (nextStep < blocks.length) {
+  //         setStep(nextStep);
+
+  //         const codePreview = document.querySelector('.code-preview');
+  //         if (codePreview) {
+  //           codePreview.scrollIntoView({ behavior: 'smooth' });
+  //         }
+
+  //         try {
+  //           const finalFeedback = await fetchFinalFeedback(userId);
+  //           setFinalFeedback(finalFeedback.message);
+  //           console.log(finalFeedback);
+
+  //           // 최종 피드백이 표시될 때 코드 미리보기로 스크롤
+  //           const codePreview = document.querySelector('.code-preview');
+  //           if (codePreview) {
+  //             codePreview.scrollIntoView({ behavior: 'smooth' });
+  //           }
+  //         } catch (error) {
+  //           console.error("Final feedback request failed:", error);
+  //         }
+
+
+  //       } else {
+  //         console.log("All problems completed.");
+          
+  //         // Request final feedback
+  //         try {
+  //           const finalFeedback = await fetchFinalFeedback(userId);
+  //           setFinalFeedback(finalFeedback.message);
+  //           console.log(finalFeedback);
+
+  //           // 최종 피드백이 표시될 때 코드 미리보기로 스크롤
+  //           const codePreview = document.querySelector('.code-preview');
+  //           if (codePreview) {
+  //             codePreview.scrollIntoView({ behavior: 'smooth' });
+  //           }
+  //         } catch (error) {
+  //           console.error("Final feedback request failed:", error);
+  //         }
+  //       }
+  //     } else {
+  //       setDisplayBlock(blocks[step].filter(item => item !== "+"));
+  //       setDroppedItems(Array(blocks[step].filter(item => item !== "+").length).fill(null));
+  //     }
+  //   } catch (error) {
+  //     console.error("Answer submission failed:", error);
+  //   }
+  // };
+
   const handleSubmit = async () => {
     const userAnswer = droppedItems.map(item => item ? item.value : "");
     
     try {
       const response = await submitAnswer(userId, userAnswer);
       setIsCorrect(response.answer);
+      
+      // 피드백 메시지 설정
+      if (response.feedback) {
+        setFeedback(response.feedback);
+      }
   
       console.log("Submitted Answer:", userAnswer);
       console.log("Server Response (isCorrect):", response.answer);
@@ -158,13 +243,35 @@ export default function CodeEditor({ onReset }) {
   
         if (nextStep < blocks.length) {
           setStep(nextStep);
+          
+          // Clear any scroll behavior
+          const codePreview = document.querySelector('.code-preview');
+          if (codePreview) {
+            codePreview.scrollIntoView({ behavior: 'smooth' });
+          }
         } else {
           console.log("All problems completed.");
           
           // Request final feedback
           try {
-            const finalFeedback = await fetchFinalFeedback(userId);
-            setFinalFeedback(finalFeedback.message);
+            const finalFeedbackResponse = await fetchFinalFeedback(userId);
+            console.log("Final feedback response:", finalFeedbackResponse);
+            
+            // Check if the response has a message property or if it is the message itself
+            if (finalFeedbackResponse.message) {
+              setFinalFeedback(finalFeedbackResponse.message);
+            } else if (finalFeedbackResponse.response) {
+              setFinalFeedback(finalFeedbackResponse.response);
+            } else {
+              // If neither, assume the entire response is the message
+              setFinalFeedback(finalFeedbackResponse);
+            }
+            
+            // 최종 피드백이 표시될 때 코드 미리보기로 스크롤
+            const codePreview = document.querySelector('.code-preview');
+            if (codePreview) {
+              codePreview.scrollIntoView({ behavior: 'smooth' });
+            }
           } catch (error) {
             console.error("Final feedback request failed:", error);
           }
@@ -177,12 +284,17 @@ export default function CodeEditor({ onReset }) {
       console.error("Answer submission failed:", error);
     }
   };
-  
+
+  useEffect(() => {
+    console.log("Final Feedback State Updated:", finalFeedback);
+  }, [finalFeedback]);
+
   const handleReset = () => {
       setStep(0);
       setCompletedSteps([]);
       setDroppedItems([]);
       setIsCorrect(null);
+      setFeedback("");
       setFinalFeedback("");
       setBlocks([]);
       onReset();
@@ -236,6 +348,7 @@ export default function CodeEditor({ onReset }) {
               className={`feedback-message ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`}
             >
               {isCorrect ? "🎉 정답입니다! 🎉" : "❌ 오답입니다! ❌"}
+              {!isCorrect && feedback && <div>{feedback}</div>}
             </motion.div>
           )}
         </div>
@@ -277,7 +390,7 @@ export default function CodeEditor({ onReset }) {
               </div>
             )}
           </div>
-          
+          <div>
           {finalFeedback && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -288,6 +401,7 @@ export default function CodeEditor({ onReset }) {
               🏆 최종 피드백: {finalFeedback}
             </motion.div>
           )}
+          </div>
         </div>
       </div>
     </div>
