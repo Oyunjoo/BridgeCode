@@ -1,7 +1,5 @@
-import { useEffect, useState } from "react";
-// import { problemData } from "../data/codeData";
-import { fetchProblem, submitAnswer, fetchFinalFeedback } from "../api/api";
-
+import { useState } from "react";
+import { problemData } from "../data/codeData"; // Import data
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import "./CodeEditor.css";
@@ -117,70 +115,54 @@ function DropZone({ id, children }) {
 }
 
 export default function CodeEditor({ problemNumber }) {
-    const [userId] = useState("user123");
-    const [problemText, setProblemText] = useState(""); // 문제 설명
-    const [comments, setComments] = useState([]); // 주석 목록
-    const [blocks, setBlocks] = useState([]); // 정답 블록 목록
-    const [droppedItems, setDroppedItems] = useState([]);
-    const [isCorrect, setIsCorrect] = useState(null);
-    const [feedback, setFeedback] = useState("");
-    const [step, setStep] = useState(0);
-    const [completedSteps, setCompletedSteps] = useState([]);
+  const { questionText, correctSteps, instructions } = problemData[problemNumber];
 
-    const handleDragEnd = (event) => {
-        const { active, over } = event;
-        if (over) {
-          const newDroppedItems = [...droppedItems];
-          newDroppedItems[parseInt(over.id)] = items.find((item) => item.id === active.id);
-          setDroppedItems(newDroppedItems);
-          setItems(items.filter((item) => item.id !== active.id));
-        }
-    };
+  const [step, setStep] = useState(1);
+  const [items, setItems] = useState(correctSteps[0].map((value, index) => ({ id: `step0-${index}`, value })).filter((item, index) => !(index === 0 && item.value === "+")));
+  const [droppedItems, setDroppedItems] = useState(Array(correctSteps[0].length).fill(null));
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [completedSteps, setCompletedSteps] = useState([]);
 
-    const handleReset = () => {
-        setStep(0);
-        setCompletedSteps([]);
-        setDroppedItems(Array(blocks.length).fill(null));
-        setIsCorrect(null);
-        setFeedback("");
-    };      
-  
-    useEffect(() => {
-      // 🔹 문제 불러오기 API 호출
-      const loadProblem = async () => {
-        try {
-          const data = await fetchProblem(userId, problemNumber);
-          setProblemText(data.problem);
-          setComments(data.comments);
-          setBlocks(data.blocks.flat()); // ✅ 중첩 배열을 평탄화해서 사용
-          setDroppedItems(Array(data.blocks.flat().length).fill(null));
-          setStep(0);
-        } catch (error) {
-          console.error("문제를 불러오는 중 오류 발생", error);
-        }
-      };
-  
-      loadProblem();
-    }, [problemNumber, userId]);
-  
-    const handleSubmit = async () => {
-      const userAnswer = droppedItems.map(item => item ? item.value : "");
-      
-      try {
-        const response = await submitAnswer(userId, problemNumber, userAnswer);
-        setIsCorrect(response.isAnswer);
-        setFeedback(response.feedback);
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+    if (over) {
+      const newDroppedItems = [...droppedItems];
+      newDroppedItems[parseInt(over.id)] = items.find((item) => item.id === active.id);
+      setDroppedItems(newDroppedItems);
+      setItems(items.filter((item) => item.id !== active.id));
+    }
+  };
 
-        if (response.isAnswer) {
-            setCompletedSteps([...completedSteps, userAnswer.join(" ")]);
-            setStep(step + 1);
-            setDroppedItems(Array(blocks.length).fill(null));
+  const handleSubmit = () => {
+    const currentOrder = droppedItems.map((item) => item?.value).filter((val, index) => !(index === 0 && val === "+"));
+    if (JSON.stringify(currentOrder) === JSON.stringify(correctSteps[step - 1].filter((val, index) => !(index === 0 && val === "+")))) {
+      setIsCorrect(true);
+      setCompletedSteps([...completedSteps, currentOrder.join(" ")]);
+      if (step < correctSteps.length) {
+        setStep(step + 1);
+        if (correctSteps[step][0] == '+') {
+            setDroppedItems(Array(correctSteps[step].length-1).fill(null));
+            setItems(correctSteps[step].map((value, index) => ({ id: `step${step}-${index}`, value })).filter((item, index) => !(index === 0 && item.value === "+")));
+            setIsCorrect(null);
         }
-      } catch (error) {
-        console.error("정답 제출 실패:", error);
+        else {
+            setDroppedItems(Array(correctSteps[step].length).fill(null));
+            setItems(correctSteps[step].map((value, index) => ({ id: `step${step}-${index}`, value })).filter((item, index) => !(index === 0 && item.value === "+")));
+            setIsCorrect(null); 
+        }
       }
-    };
-
+    } else {
+      setIsCorrect(false);
+      if (correctSteps[step-1][0] == '+') {
+        setDroppedItems(Array(correctSteps[step - 1].length-1).fill(null)); // Reset drop zone
+        setItems(correctSteps[step - 1].map((value, index) => ({ id: `step${step - 1}-${index}`, value })).filter((item, index) => !(index === 0 && item.value === "+"))); // Reset available items
+      }
+      else {
+        setDroppedItems(Array(correctSteps[step - 1].length).fill(null)); // Reset drop zone
+        setItems(correctSteps[step - 1].map((value, index) => ({ id: `step${step - 1}-${index}`, value })).filter((item, index) => !(index === 0 && item.value === "+"))); // Reset available items
+      }
+    }
+  };
 
   return (
     <div className="code-editor-container" style={{ width: "70vw", height: "50vh", display: "flex", backgroundColor: "#f8f3f9"}}>
@@ -188,12 +170,12 @@ export default function CodeEditor({ problemNumber }) {
         <div className="left-section" style={sectionStyle}>
           <h2 style={titleStyle}>코드 한 줄씩 완성하기</h2>
           <div className="instruction-box" style={instructionStyle}>
-            <p>{comments[step - 1]}</p>
+            <p>{instructions[step - 1]}</p>
             <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
               <div style={wrapperStyle}>
                 <div className="drag-container" style={{...containerStyle, backgroundColor: "#fafafa"}}>
-                  {blocks.map((item, index) => (
-                    <DraggableItem key={index} id={`word-${index}`} value={item} />
+                  {items.map((item) => (
+                    <DraggableItem key={item.id} id={item.id} value={item.value} />
                   ))}
                 </div>
                 <div className="drop-container" style={{ ...containerStyle, display: "flex", justifyContent: "center", gap: "10px", flexWrap: "wrap", backgroundColor: "#fff59d" }}>
@@ -204,41 +186,21 @@ export default function CodeEditor({ problemNumber }) {
               </div>
             </DndContext>
           </div>
-
-          <button className="submit-button" onClick={handleSubmit} style={{ padding: "8px 16px", fontSize: "14px", width: "auto", minWidth: "100px", alignItems: "center" }}>제출하기</button>
-          {isCorrect !== null && <p>{isCorrect ? "정답!" : "오답!"} - {feedback}</p>}
-
-          {/* ✅ 모든 문제를 맞췄을 때 처음 화면으로 돌아가는 버튼 */}
-          {completedSteps.length === comments.length && (
-            <button
-              onClick={handleReset}
-              style={{
-                padding: "8px 16px",
-                fontSize: "14px",
-                fontWeight: "bold",
-                backgroundColor: "#4A90E2",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                cursor: "pointer",
-                transition: "background 0.3s",
-                width: "auto", 
-                minWidth: "100px"
-              }}
-            >
-              처음 화면으로 돌아가기
-            </button>
+          <button className="submit-button" onClick={handleSubmit} style={{ padding: "8px 16px", fontSize: "14px", width: "auto", minWidth: "100px" }}>제출하기</button>
+          {isCorrect !== null && !isCorrect && (
+            <p className={`result-message ${isCorrect ? 'correct' : 'incorrect'}`}>
+              {isCorrect ? "정답입니다!" : "오답입니다. 다시 시도하세요."}
+            </p>
           )}
         </div>
-
         <div className="right-section" style={sectionStyle}>
           <div className="horizontal-layout" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
-            <h3 style={{...questionStyle, alignItems: "center"}}>Q. {problemText}</h3>
+            <h3 style={{...questionStyle, alignItems: "center"}}>Q. {questionText}</h3>
             <div className="code-preview" style={{ display: "flex", flexDirection: "column", width: "100%", alignItems:"center" }}>
-              {comments.map((comment, index) => (
+              {instructions.map((instruction, index) => (
                 <p key={index} className="pending" style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ textAlign: "left", whiteSpace: "pre" }}>{completedSteps.length > index ? (completedSteps[index][0]=='+' ? "         " + completedSteps[index] : completedSteps[index]) : ""}</span>
-                  <span style={{ textAlign: "right", color: "gray", fontStyle: "italic" }}>{comment}</span>
+                  <span style={{ textAlign: "left", whiteSpace: "pre" }}>{completedSteps.length > index ? (correctSteps[index][0]=='+' ? "         " + completedSteps[index] : completedSteps[index]) : ""}</span>
+                  <span style={{ textAlign: "right", color: "gray", fontStyle: "italic" }}>{instruction}</span>
                 </p>
               ))}
             </div>

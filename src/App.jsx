@@ -49,10 +49,11 @@ function StartPage({ onSelectProblem }) {
 const startPageStyle = {
   display: "flex",
   flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
+  justifyContent: "center",  // ✅ 수직 가운데 정렬
+  alignItems: "center",      // ✅ 수평 가운데 정렬 추가
   height: "100vh",
-  backgroundColor: "#f3f4f6",
+  width: "100vw",            // ✅ 전체 너비 사용하여 가운데 정렬
+  backgroundColor: "#f8f3f9",
 };
 
 const titleStyle = {
