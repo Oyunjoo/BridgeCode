@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { questionText, correctSteps, instructions } from "../data/codeData"; // Import data
+import { problemData } from "../data/codeData"; // Import data
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { useDraggable, useDroppable } from "@dnd-kit/core";
 import "./CodeEditor.css";
@@ -114,7 +114,9 @@ function DropZone({ id, children }) {
     );
 }
 
-export default function CodeEditor() {
+export default function CodeEditor({ problemNumber }) {
+  const { questionText, correctSteps, instructions } = problemData[problemNumber];
+
   const [step, setStep] = useState(1);
   const [items, setItems] = useState(correctSteps[0].map((value, index) => ({ id: `step0-${index}`, value })).filter((item, index) => !(index === 0 && item.value === "+")));
   const [droppedItems, setDroppedItems] = useState(Array(correctSteps[0].length).fill(null));

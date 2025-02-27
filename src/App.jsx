@@ -1,14 +1,12 @@
-// import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
 import { useState } from "react";
-import CodeEditor from "./components/CodeEditor"; // CodeEditor.jsx가 components 폴더에 있다고 가정
+import CodeEditor from "./components/CodeEditor"; // CodeEditor 가져오기
 
+console.log("앱 실행딤");
 export default function App() {
   const [selectedProblem, setSelectedProblem] = useState(null);
 
   const handleProblemSelect = (problemNumber) => {
+    console.log(`문제 ${problemNumber} 선택됨`);
     setSelectedProblem(problemNumber);
   };
 
@@ -23,14 +21,21 @@ export default function App() {
   );
 }
 
+
 function StartPage({ onSelectProblem }) {
+  console.log("StartPage 렌더링됨, onSelectProblem:", onSelectProblem);
+  console.log("onSelectProblem:", onSelectProblem); // ✅ 함수가 정상적으로 전달되었는지 확인
+
   return (
     <div style={startPageStyle}>
       <h1 style={titleStyle}>Python 코딩 연습</h1>
       <p style={subtitleStyle}>원하는 문제를 선택하세요.</p>
       <div style={buttonContainerStyle}>
         {[1, 2, 3].map((num) => (
-          <button key={num} style={buttonStyle} onClick={() => onSelectProblem(num)}>
+          <button key={num} style={buttonStyle} onClick={() => {
+            console.log(`문제 ${num} 버튼 클릭됨`); 
+            if (onSelectProblem) onSelectProblem(num); // ✅ 함수가 undefined일 경우 대비
+          }} disabled={false}>
             문제 {num}
           </button>
         ))}
@@ -39,6 +44,8 @@ function StartPage({ onSelectProblem }) {
   );
 }
 
+
+// ✅ 기본 스타일 (없으면 버튼이 안 보일 수 있음)
 const startPageStyle = {
   display: "flex",
   flexDirection: "column",
@@ -81,4 +88,3 @@ const buttonStyle = {
 buttonStyle[":hover"] = {
   backgroundColor: "#357ABD",
 };
-
