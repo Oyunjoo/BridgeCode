@@ -154,9 +154,8 @@ export default function CodeEditor({ onReset }) {
               return updatedBlocks;
           });
       }
-  };
+    };
   
-    
 
     const handleReset = () => {
         setStep(0);
@@ -186,29 +185,28 @@ export default function CodeEditor({ onReset }) {
       loadProblem();
     }, [userId]);
 
-    const currentBlock = blocks[step] || []; // 현재 블록이 없을 경우 빈 배열 방지
-    const isIndented = currentBlock[0] === "+"; // ✅ 맨 앞 요소가 "+"인지 체크
-    const displayBlock = isIndented ? currentBlock.slice(1) : currentBlock; // ✅ "+"가 있으면 제거, 없으면 그대로
-
     useEffect(() => {
       if (!blocks[step]) return; // ✅ 방어 코드 추가
     
-      const isIndented = blocks[step]?.[0] === "+"; // ✅ 들여쓰기 여부 체크
-      const displayBlock = isIndented ? blocks[step].slice(1) : blocks[step]; // ✅ + 제외한 코드
+      // ✅ `+` 개수를 카운트하여 들여쓰기 수준 결정
+      const indentLevel = blocks[step]?.findIndex(word => word !== "+"); // `+`가 아닌 첫 번째 요소의 인덱스
+      const displayBlock = indentLevel > 0 ? blocks[step].slice(indentLevel) : blocks[step]; // `+` 제거된 블록
     
       console.log("📌 현재 Step:", step);
-      console.log("📌 isIndented:", isIndented);
+      console.log("📌 indentLevel (들여쓰기 개수):", indentLevel);
       console.log("📌 displayBlock:", displayBlock);
     
-      // if (isIndented) {
-      //   setCompletedSteps(prevSteps => {
-      //     const updatedSteps = [...prevSteps, { text: blocks[step].join(" "), isIndented }];
-      //     console.log("📌 (After Update) completedSteps:", updatedSteps);
-      //     return updatedSteps;
-      //   });
-      //   setStep(prevStep => prevStep + 1);
-      // }
+      // ✅ completedSteps에 indentLevel을 함께 저장
+      if (indentLevel > 0) {
+        setCompletedSteps(prevSteps => {
+          const updatedSteps = [...prevSteps, { text: displayBlock.join(" "), indentLevel }];
+          console.log("📌 (After Update) completedSteps:", updatedSteps);
+          return updatedSteps;
+        });
+        setStep(prevStep => prevStep + 1);
+      }
     }, [step]);
+    
     
        
   
@@ -331,13 +329,20 @@ export default function CodeEditor({ onReset }) {
         <div className="right-section" style={sectionStyle}>
           <div className="horizontal-layout" style={{ display: "flex", flexDirection: "column", width: "100%" }}>
             <h3 style={{...questionStyle, alignItems: "center"}}>Q. {problemText}</h3>
-            <div className="code-preview" style={{ display: "flex", flexDirection: "column", width: "100%", alignItems:"center" }}>
-              {comments.map((comment, index) => (
-                <p key={index} className="pending" style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ textAlign: "left", whiteSpace: "pre" }}>{ isIndented ? "         " + completedSteps[index] : completedSteps[index] }</span>
-                  <span style={{ textAlign: "right", color: "gray", fontStyle: "italic" }}>{comment}</span>
-                </p>
-              ))}
+            <div className="code-preview" style={{ display: "flex", flexDirection: "column", width: "100%", alignItems: "center" }}>
+              {comments.map((comment, index) => {
+                const completedStep = completedSteps[index];
+                if (!completedStep) return null; // ✅ 방어 코드 추가
+
+                return (
+                  <p key={index} className="pending" style={{ width: "100%", display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ textAlign: "left", whiteSpace: "pre" }}>
+                      {" ".repeat(completedStep.indentLevel * 4) + completedStep.text} {/* ✅ 4칸 들여쓰기 적용 */}
+                    </span>
+                    <span style={{ textAlign: "right", color: "gray", fontStyle: "italic" }}>{comment}</span>
+                  </p>
+                );
+              })}
             </div>
           </div>
         </div>
